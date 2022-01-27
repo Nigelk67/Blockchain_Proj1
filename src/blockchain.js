@@ -45,8 +45,9 @@ class Blockchain {
      * Utility method that return a Promise that will resolve with the height of the chain
      */
     getChainHeight() {
+        let self = this;
         return new Promise((resolve, reject) => {
-            resolve(this.height);
+            resolve(self.height);
         });
     }
 
@@ -70,7 +71,7 @@ class Blockchain {
             block.height = self.height + 1;
             block.hash = SHA256(JSON.stringify(block)).toString();
             if (self.chain.length > 0) {
-                block.previousBlockHash = self.chain[self.height].previousBlockHash;
+                block.previousBlockHash = self.chain[self.height].hash;
             }
             self.chain.push(block);
             self.height += 1;
@@ -143,21 +144,32 @@ class Blockchain {
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
             console.log("currentTime =", currentTime, "messageTime =", messageTime)
             console.log("currentTime less messageTime =", currentTime - messageTime)
-            if (currentTime - messageTime <= 300) {
-                console.log("Less than 300")
-                if (!bitcoinMessage.verify(message, address, signature)) {
-                    console.log("Rejected - not vierified")
-                    return reject(new Error("Not Verified"))
-                } else {
-                    const data = { address: address, star: star }
-                    const block = new BlockClass.Block(data);
-                    await self._addBlock(block);
-                    resolve(block);
-                }
+            //Without time check:-
+            if (!bitcoinMessage.verify(message, address, signature)) {
+                console.log("Rejected - not vierified")
+                return reject(new Error("Not Verified"))
             } else {
-                console.log("more than 300")
-                return reject(new Error("Block not added within 5 mins"))
+                const data = { address: address, star: star }
+                const block = new BlockClass.Block(data);
+                await self._addBlock(block);
+                resolve(block);
             }
+            //WITH time check:-
+            // if (currentTime - messageTime <= 300) {
+            //     console.log("Less than 300")
+            //     if (!bitcoinMessage.verify(message, address, signature)) {
+            //         console.log("Rejected - not vierified")
+            //         return reject(new Error("Not Verified"))
+            //     } else {
+            //         const data = { address: address, star: star }
+            //         const block = new BlockClass.Block(data);
+            //         await self._addBlock(block);
+            //         resolve(block);
+            //     }
+            // } else {
+            //     console.log("more than 300")
+            //     return reject(new Error("Block not added within 5 mins"))
+            // }
         });
     }
 
@@ -207,11 +219,14 @@ class Blockchain {
         let stars = [];
         return new Promise((resolve, reject) => {
             try {
-                self.chain.forEach((block) => {
-                    let data = block.getBData();
+                self.chain.forEach(async (block) => {
+                    let data = await block.getBData();
+                    console.log("Data.address = ", data.address)
                     if (data) {
-                        if (data.owner === address) {
+                        if (data.address === address) {
                             stars.push(data);
+                        } else {
+                            console.log("Addresses do not match, data.address = ", data.address, " Address =", address)
                         }
                     }
                 });

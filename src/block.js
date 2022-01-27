@@ -78,9 +78,10 @@ class Block {
             let data = JSON.parse(decodedData);
             // Resolve with the data if the object isn't the Genesis block
             if (data) {
+                //This works for data:-
                 resolve(data);
             } else {
-                console.log("getBData - this has no data -", data)
+
                 reject(Error("The Block has no data"))
             }
         });
