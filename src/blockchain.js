@@ -79,28 +79,11 @@ class Blockchain {
                 resolve(block)
             else
                 reject(Error("Unable to add block"));
-            // self.height = self.chain.length;
-            // if (self.height > 0) {
-            //     try {
-            //         const newHeight = self.height + 1;
-            //         block.height = newHeight;
-            //         self.height++;
-            //         const previousHash = await self.validateChain();
-            //         self.getBlockByHeight(self.height);
-            //         block.previousHash = previousBlock.hash
-            //         block.hash = SHA256(JSON.stringify(block).toString());
-            //         self.chain.push(block);
-            //         self.height++;
-            //         resolve(block);
-            //     } catch (error) {
-            //         reject(error)
-            //     }
-            // }
+
         });
     }
 
     /**
-     * 1HZwkjkeaoZfTSaJxDw6aKkxp45agDiEzN
      * The requestMessageOwnershipVerification(address) method
      * will allow you  to request a message that you will use to
      * sign it with your Bitcoin Wallet (Electrum or Bitcoin Core)
@@ -139,37 +122,35 @@ class Blockchain {
     submitStar(address, message, signature, star) {
         let self = this;
         return new Promise(async (resolve, reject) => {
-            console.log("submitStar")
             let messageTime = parseInt(message.split(':')[1]);
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
             console.log("currentTime =", currentTime, "messageTime =", messageTime)
-            console.log("currentTime less messageTime =", currentTime - messageTime)
             //Without time check:-
-            if (!bitcoinMessage.verify(message, address, signature)) {
-                console.log("Rejected - not vierified")
-                return reject(new Error("Not Verified"))
-            } else {
-                const data = { address: address, star: star }
-                const block = new BlockClass.Block(data);
-                await self._addBlock(block);
-                resolve(block);
-            }
-            //WITH time check:-
-            // if (currentTime - messageTime <= 300) {
-            //     console.log("Less than 300")
-            //     if (!bitcoinMessage.verify(message, address, signature)) {
-            //         console.log("Rejected - not vierified")
-            //         return reject(new Error("Not Verified"))
-            //     } else {
-            //         const data = { address: address, star: star }
-            //         const block = new BlockClass.Block(data);
-            //         await self._addBlock(block);
-            //         resolve(block);
-            //     }
+            // if (!bitcoinMessage.verify(message, address, signature)) {
+            //     console.log("Rejected - not vierified")
+            //     return reject(new Error("Not Verified"))
             // } else {
-            //     console.log("more than 300")
-            //     return reject(new Error("Block not added within 5 mins"))
+            //     const data = { address: address, star: star }
+            //     const block = new BlockClass.Block(data);
+            //     await self._addBlock(block);
+            //     resolve(block);
             // }
+            //WITH time check:-
+            if (currentTime - messageTime <= 300) {
+                console.log("Less than 300")
+                if (!bitcoinMessage.verify(message, address, signature)) {
+                    console.log("Rejected - not vierified")
+                    return reject(new Error("Not Verified"))
+                } else {
+                    const data = { address: address, star: star }
+                    const block = new BlockClass.Block(data);
+                    await self._addBlock(block);
+                    resolve(block);
+                }
+            } else {
+                console.log("more than 300")
+                return reject(new Error("Block not added within 5 mins"))
+            }
         });
     }
 
