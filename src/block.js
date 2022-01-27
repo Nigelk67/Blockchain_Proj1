@@ -43,6 +43,7 @@ class Block {
             self.hash = null;
             // Recalculate the hash of the Block
             const recalculatedHash = SHA256(JSON.stringify(self)).toString();
+            self.hash = recalculatedHash
             // Comparing if the hashes changed
             if (currentHash === recalculatedHash) {
                 // Returning the Block is valid
@@ -64,19 +65,25 @@ class Block {
      *     or Reject with an error.
      */
     getBData() {
-        // Getting the encoded data saved in the Block
-        let encodedData = this.body;
-        // Decoding the data to retrieve the JSON representation of the object
-        let JsonData = hex2ascii(encodedData);
-        // Parse the data to an object to be retrieve.
-        let data = JSON.parse(JsonData);
-        // Resolve with the data if the object isn't the Genesis block
-        if (data && this.height > 0) {
-            return data;
-        } else {
-            console.log("This is Genesis")
-        }
-
+        let self = this;
+        return new Promise(async (resolve, reject) => {
+            if (self.height == 0) {
+                resolve("This is the Genesis block")
+            }
+            // Getting the encoded data saved in the Block
+            let encodedData = self.body;
+            // Decoding the data to retrieve the JSON representation of the object
+            let decodedData = hex2ascii(encodedData);
+            // Parse the data to an object to be retrieve.
+            let data = JSON.parse(decodedData);
+            // Resolve with the data if the object isn't the Genesis block
+            if (data) {
+                resolve(data);
+            } else {
+                console.log("getBData - this has no data -", data)
+                reject(Error("The Block has no data"))
+            }
+        });
     }
 
 }

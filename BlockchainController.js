@@ -67,11 +67,9 @@ class BlockchainController {
                     if (block) {
                         return res.status(200).json(block);
                     } else {
-                        console.log("BCController submitStar error 500", error)
                         return res.status(500).send("An error happened!");
                     }
                 } catch (error) {
-                    console.log("BCController submitStar error 500", error)
                     return res.status(500).send(error);
                 }
             } else {
