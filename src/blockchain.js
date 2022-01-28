@@ -66,20 +66,30 @@ class Blockchain {
     _addBlock(block) {
         let self = this;
         return new Promise(async (resolve, reject) => {
-            console.log("addBlock")
             block.time = new Date().getTime().toString().slice(0, -3);
             block.height = self.height + 1;
-            block.hash = SHA256(JSON.stringify(block)).toString();
             if (self.chain.length > 0) {
                 block.previousBlockHash = self.chain[self.height].hash;
             }
-            self.chain.push(block);
-            self.height += 1;
-            if (JSON.stringify(self.chain[self.height]) == JSON.stringify(block))
-                resolve(block)
-            else
-                reject(Error("Unable to add block"));
 
+            const errors = await self.validateChain();
+
+            if (errors.length === 0) {
+                self.height += 1;
+                block.hash = await SHA256(JSON.stringify(block)).toString();
+                self.chain.push(block);
+                resolve(block);
+            } else {
+                console.log("Errors in addBlock validateChain - ", errors)
+                reject(errors);
+            }
+            // if (JSON.stringify(self.chain[self.height]) == JSON.stringify(block))
+            //     resolve(block)
+            // else
+            //     reject(Error("Unable to add block"));
+
+        }).catch(error => {
+            console.log(error)
         });
     }
 
